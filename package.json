@@ -1,0 +1,35 @@
+{
+  "name": "opencode-tui-extension",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Persistent TUI status banner plugin for opencode (v1 & v2 dual entry)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Dear-xml/opencode-tui-extension.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Dear-xml/opencode-tui-extension/issues"
+  },
+  "homepage": "https://github.com/Dear-xml/opencode-tui-extension#readme",
+  "bin": {
+    "opencode-tui-extension": "bin/status.mjs"
+  },
+  "exports": {
+    "./tui": "./tui.tsx"
+  },
+  "files": ["bin", "common", "tui.tsx", "v1"],
+  "peerDependencies": {
+    "@opentui/core": ">=0.6.6",
+    "@opentui/solid": ">=0.6.6",
+    "solid-js": ">=1.9.0"
+  },
+  "peerDependenciesMeta": {
+    "@opentui/core": { "optional": true },
+    "@opentui/solid": { "optional": true },
+    "solid-js": { "optional": true }
+  },
+  "engines": {
+    "opencode": ">=1.19.0"
+  },
+  "license": "MIT"
+}
