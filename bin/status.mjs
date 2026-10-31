@@ -85,8 +85,8 @@ function doSetup(forceV1, forceV2) {
   const lines = []
   for (const p of probes) lines.push(`detected ${p.name} -> v${p.version}`)
   if (probes.length === 0) lines.push("no opencode binary detected (use --v1 / --v2 to force)")
-  const wantV1 = forceV1 || probes.some((p) => p.major === 1)
-  const wantV2 = forceV2 || probes.some((p) => p.major === 2)
+  const wantV1 = forceV1 || (!forceV2 && probes.some((p) => p.major === 1))
+  const wantV2 = forceV2 || (!forceV1 && probes.some((p) => p.major === 2))
   if (wantV1) {
     const url = pathToFileURL(V1_ENTRY).href
     const cfg = readJson(V1_CONFIG)
@@ -205,7 +205,7 @@ function cmdDoctor() {
 function cmdHelp() {
   console.log(`opencode-tui-extension
   init [text] [--v1 --v2]  one command: npm link + setup + show bottom banner by default
-  setup [--v1 --v2]        detect opencode v1/v2 and register plugin (idempotent)
+  setup [--v1 --v2]        register plugin, auto-detect versions; --v1/--v2 restrict to that version
   set <text>               write banner text (.opencode/status.txt)
   sidebar <text>           write sidebar lines (.opencode/sidebar.txt, \\n = newline)
   clear [status|sidebar|all]   hide banner/sidebar (default all)
