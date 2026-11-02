@@ -1,5 +1,5 @@
-#!/usr/bin/env node
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs"
+﻿#!/usr/bin/env node
+import { readFileSync, writeFileSync, mkdirSync, existsSync, cpSync, rmSync } from "node:fs"
 import { execFileSync } from "node:child_process"
 import { fileURLToPath, pathToFileURL } from "node:url"
 import path from "node:path"
@@ -13,6 +13,25 @@ const CONFIG_DIR = process.env.OPENCODE_CONFIG_DIR || path.join(os.homedir(), ".
 const V1_CONFIG = process.env.OPENCODE_TUI_CONFIG || path.join(CONFIG_DIR, "tui.json")
 const V2_CONFIG = path.join(CONFIG_DIR, "cli.json")
 const MARKER = path.join(CONFIG_DIR, "opencode-tui-extension.loaded.json")
+
+function v1RuntimeRoot() {
+  if (!PKG_ROOT.includes(`${path.sep}node_modules${path.sep}`)) return PKG_ROOT
+  const deploy = path.join(CONFIG_DIR, "plugins", "opencode-tui-extension")
+  const version = JSON.parse(readFileSync(path.join(PKG_ROOT, "package.json"), "utf8")).version
+  const stamp = path.join(deploy, "VERSION")
+  if (!existsSync(stamp) || readFileSync(stamp, "utf8").trim() !== version) {
+    rmSync(deploy, { recursive: true, force: true })
+    mkdirSync(deploy, { recursive: true })
+    cpSync(path.join(PKG_ROOT, "v1"), path.join(deploy, "v1"), { recursive: true })
+    cpSync(path.join(PKG_ROOT, "common"), path.join(deploy, "common"), { recursive: true })
+    writeFileSync(stamp, version + "\n")
+  }
+  return deploy
+}
+
+function v1EntryFile() {
+  return path.join(v1RuntimeRoot(), "v1", "entry.tsx")
+}
 
 function sh(cmd, args, options = {}) {
   try {
@@ -88,7 +107,7 @@ function doSetup(forceV1, forceV2) {
   const wantV1 = forceV1 || (!forceV2 && probes.some((p) => p.major === 1))
   const wantV2 = forceV2 || (!forceV1 && probes.some((p) => p.major === 2))
   if (wantV1) {
-    const url = pathToFileURL(V1_ENTRY).href
+    const url = pathToFileURL(v1EntryFile()).href
     const cfg = readJson(V1_CONFIG)
     cfg.plugin = Array.isArray(cfg.plugin) ? cfg.plugin : []
     if (cfg.plugin.includes(url)) {
@@ -115,7 +134,7 @@ function doSetup(forceV1, forceV2) {
   } else {
     lines.push("v2: not detected, skipped")
   }
-  if (!existsSync(V1_ENTRY)) lines.push(`WARN v1 entry missing: ${V1_ENTRY}`)
+  if (!existsSync(v1EntryFile())) lines.push(`WARN v1 entry missing: ${v1EntryFile()}`)
   if (!existsSync(V2_ENTRY)) lines.push(`WARN v2 entry missing: ${V2_ENTRY}`)
   lines.push("restart opencode (each version) to activate")
   return lines
@@ -187,11 +206,11 @@ function cmdClear(args) {
 function cmdDoctor() {
   const lines = []
   lines.push(`package: ${PKG_ROOT}`)
-  lines.push(`v1 entry: ${existsSync(V1_ENTRY) ? "ok" : "MISSING " + V1_ENTRY}`)
+  lines.push(`v1 entry: ${existsSync(v1EntryFile()) ? "ok" : "MISSING " + v1EntryFile()}`)
   lines.push(`v2 entry: ${existsSync(V2_ENTRY) ? "ok" : "MISSING " + V2_ENTRY}`)
   for (const p of probeShims()) lines.push(`binary: ${p.name} -> v${p.version}`)
   const tui = readJson(V1_CONFIG)
-  const v1Url = pathToFileURL(V1_ENTRY).href
+  const v1Url = pathToFileURL(v1EntryFile()).href
   lines.push(`v1 config: ${V1_CONFIG} plugin=${JSON.stringify(tui.plugin ?? [])} registered=${(tui.plugin || []).includes(v1Url)}`)
   const cli = readJson(V2_CONFIG)
   const v2Url = pathToFileURL(PKG_ROOT).href
