@@ -1,6 +1,6 @@
 {
   "name": "opencode-tui-extension",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "type": "module",
   "description": "Persistent TUI status banner plugin for opencode (v1 & v2 dual entry)",
   "repository": {

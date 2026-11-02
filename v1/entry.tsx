@@ -13,7 +13,6 @@ function Banner(props: { api: TuiPluginApi; lines: Accessor<string[]> }) {
     <Show when={firstLine(props.lines())}>
       {(text) => (
         <box flexDirection="row" flexShrink={0} paddingLeft={2} gap={1}>
-          <text fg={theme().textMuted}>status:</text>
           <text fg={theme().text}>{text()}</text>
         </box>
       )}

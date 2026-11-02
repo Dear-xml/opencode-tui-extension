@@ -4,7 +4,7 @@ import { execFileSync } from "node:child_process"
 import { fileURLToPath, pathToFileURL } from "node:url"
 import path from "node:path"
 import os from "node:os"
-import { SLOT_DIR, STATUS_FILE, SIDEBAR_FILE, DEFAULT_STATUS } from "../common/constants.js"
+import { SLOT_DIR, STATUS_FILE, SIDEBAR_FILE, DEFAULT_STATUS, DEFAULT_LABEL } from "../common/constants.js"
 
 const PKG_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const V1_ENTRY = path.join(PKG_ROOT, "v1", "entry.tsx")
@@ -141,13 +141,29 @@ function cmdInit(args) {
 }
 
 function cmdSet(args) {
-  const text = args.join(" ").trim()
+  const rest = [...args]
+  let label = DEFAULT_LABEL
+  const labelIndex = rest.indexOf("--label")
+  if (labelIndex !== -1) {
+    label = rest[labelIndex + 1]
+    if (!label || label.startsWith("--")) {
+      console.error("usage: opencode-tui-extension set [--label <text>|--no-label] <text>")
+      process.exit(1)
+    }
+    rest.splice(labelIndex, 2)
+  }
+  if (rest.includes("--no-label")) {
+    label = ""
+    rest.splice(rest.indexOf("--no-label"), 1)
+  }
+  const text = rest.filter((a) => !a.startsWith("--")).join(" ").trim()
   if (!text) {
-    console.error("usage: opencode-tui-extension set <text>")
+    console.error("usage: opencode-tui-extension set [--label <text>|--no-label] <text>")
     process.exit(1)
   }
-  writeSlot(STATUS_FILE, text + "\n")
-  console.log(`${STATUS_FILE} <- ${text}`)
+  const body = label ? `${label}: ${text}` : text
+  writeSlot(STATUS_FILE, body + "\n")
+  console.log(`${STATUS_FILE} <- ${body}`)
 }
 
 function cmdSidebar(args) {
@@ -206,7 +222,7 @@ function cmdHelp() {
   console.log(`opencode-tui-extension
   init [text] [--v1 --v2]  one command: npm link + setup + show bottom banner by default
   setup [--v1 --v2]        register plugin, auto-detect versions; --v1/--v2 restrict to that version
-  set <text>               write banner text (.opencode/status.txt)
+  set [--label <text>|--no-label] <text>   write banner text (default label prefix "${DEFAULT_LABEL}")
   sidebar <text>           write sidebar lines (.opencode/sidebar.txt, \\n = newline)
   clear [status|sidebar|all]   hide banner/sidebar (default all)
   doctor                   show install/registration/slot status`)

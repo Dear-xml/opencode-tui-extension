@@ -30,7 +30,6 @@ export default Plugin.define({
       <Show when={firstLine(statusLines())}>
         {(text) => (
           <box flexDirection="row" flexShrink={0} gap={1}>
-            <text fg={muted()}>status:</text>
             <text fg={base()}>{text()}</text>
           </box>
         )}
