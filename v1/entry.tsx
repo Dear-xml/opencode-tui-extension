@@ -4,7 +4,7 @@ import { Show, For, type Accessor } from "solid-js"
 import { writeFileSync, mkdirSync } from "node:fs"
 import { join } from "node:path"
 import { homedir } from "node:os"
-import { DEFAULT_STATUS, DEFAULT_SIDEBAR, STATUS_FILE, SIDEBAR_FILE } from "../common/constants.js"
+import { DEFAULT_STATUS, DEFAULT_SIDEBAR, STATUS_FILE, SIDEBAR_FILE, SLOT_DIR } from "../common/constants.js"
 import { firstLine, useSlotLines } from "../common/utils.ts"
 
 function Banner(props: { api: TuiPluginApi; lines: Accessor<string[]> }) {
@@ -60,6 +60,14 @@ const tui: TuiPlugin = async (api) => {
         return <SidebarBlock api={api} lines={sidebarLines} />
       },
     },
+  })
+  api.lifecycle.onDispose(() => {
+    try {
+      const dir = join(directory(), SLOT_DIR)
+      mkdirSync(dir, { recursive: true })
+      writeFileSync(join(dir, STATUS_FILE), "")
+      writeFileSync(join(dir, SIDEBAR_FILE), "")
+    } catch {}
   })
 }
 

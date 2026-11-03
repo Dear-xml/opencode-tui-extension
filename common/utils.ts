@@ -8,7 +8,7 @@ export function readSlotFile(directory: string, name: string, fallback: string):
   try {
     text = readFileSync(join(directory, SLOT_DIR, name), "utf8")
   } catch {
-    return [fallback]
+    return fallback ? [fallback] : []
   }
   return text
     .split(/\r?\n/)

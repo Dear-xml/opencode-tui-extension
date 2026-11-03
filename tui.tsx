@@ -1,7 +1,9 @@
 /** @jsxImportSource @opentui/solid */
 import { Plugin } from "@opencode/plugin/tui"
 import { Show, For } from "solid-js"
-import { DEFAULT_STATUS, DEFAULT_SIDEBAR, STATUS_FILE, SIDEBAR_FILE } from "./common/constants.js"
+import { writeFileSync, mkdirSync } from "node:fs"
+import { join } from "node:path"
+import { DEFAULT_STATUS, DEFAULT_SIDEBAR, STATUS_FILE, SIDEBAR_FILE, SLOT_DIR } from "./common/constants.js"
 import { firstLine, useSlotLines } from "./common/utils.ts"
 
 export default Plugin.define({
@@ -56,6 +58,12 @@ export default Plugin.define({
 
     return () => {
       for (const dispose of disposers) dispose()
+      try {
+        const dir = join(directory(), SLOT_DIR)
+        mkdirSync(dir, { recursive: true })
+        writeFileSync(join(dir, STATUS_FILE), "")
+        writeFileSync(join(dir, SIDEBAR_FILE), "")
+      } catch {}
     }
   },
 })
